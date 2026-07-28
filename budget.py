@@ -362,16 +362,11 @@ with tab_transfer:
         
         if st.button("Transfer Funds", type="primary"):
             if fund_amount <= 0:
-                st.error("🚨 Invalid Amount! Please enter a positive number without special characters.")
+                st.error("🚨 Invalid Amount! Please enter a positive number.")
             elif sender == receiver:
                 st.error("🚨 Sender and Receiver cannot be the same person.")
             else:
-                # --- NEW STRICT BALANCE CHECK FOR TRANSFERS ---
-            if sender == receiver:
-                st.error("🚨 Sender and Receiver cannot be the same person.")
-            elif fund_amount > 0:
-                
-                # --- NEW STRICT BALANCE CHECK FOR TRANSFERS ---
+                # --- STRICT BALANCE CHECK FOR TRANSFERS ---
                 current_balance = balances.get(sender, 0)
                 if sender != "Father" and (current_balance - fund_amount) < 0:
                     st.error(f"❌ Transfer declined! Your current balance is ₹{current_balance:,.0f}. Deducting ₹{fund_amount:,.0f} would drop your balance below zero.")
