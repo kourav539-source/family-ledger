@@ -8,8 +8,8 @@ from supabase import create_client, Client
 # --- 1. CONFIGURATION & SECRETS ---
 st.set_page_config(page_title="Kourav Family Ledger", page_icon="🏦", layout="wide")
 
-FAMILY_PASSWORD = "BIMTECH2027" 
-PASSWORD_HINT = "Vivek's college name (All Caps) followed by his PGDM graduation year."
+FAMILY_PASSWORD = "Surekha" 
+PASSWORD_HINT = "Mother's Name"
 
 # Initialize the step-by-step memory
 if "authenticated" not in st.session_state:
