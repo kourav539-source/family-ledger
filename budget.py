@@ -6,7 +6,7 @@ from datetime import datetime
 from supabase import create_client, Client
 
 # --- 1. CONFIGURATION & SECRETS ---
-st.set_page_config(page_title="Automated Family Ledger", page_icon="🏦", layout="wide")
+st.set_page_config(page_title="Kourav Family Ledger", page_icon="🏦", layout="wide")
 
 # --- 🔒 AUTHENTICATION SYSTEM ---
 # You can change this password and hint to anything you want!
@@ -17,7 +17,7 @@ if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
 if not st.session_state["authenticated"]:
-    st.title("🔒 Private Family Ledger")
+    st.title("🔒 Kourav Family Ledger")
     st.markdown("Please enter the secure family password to access the financial records.")
     
     pwd = st.text_input("Password", type="password")
@@ -255,7 +255,7 @@ if st.sidebar.button("🔄 Sync Telegram Inbox"):
     process_telegram_inbox()
 
 # --- 5. TOP NAVIGATION: MONTH SELECTOR ---
-st.title("🏦 Automated Family Ledger")
+st.title("🏦 Kourav Family Ledger")
 df = load_data()
 
 current_month_str = datetime.now().strftime("%B %Y")
