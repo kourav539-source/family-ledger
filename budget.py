@@ -352,7 +352,8 @@ with tab_transfer:
             receiver = st.selectbox("To (Receiver)", available_receivers, key="receiver")
             
     with col2:
-        fund_amount = st.number_input("Transfer Amount (₹)", min_value=0, step=500, key="fund_amount")
+        # Changed min_value to 1 to block negative numbers and zero
+        fund_amount = st.number_input("Transfer Amount (₹)", min_value=1, step=500, key="fund_amount")
         fund_desc = st.text_input("Note", key="fund_desc")
     with col3:
         st.write("") 
@@ -360,6 +361,12 @@ with tab_transfer:
         st.write("") 
         
         if st.button("Transfer Funds", type="primary"):
+            if fund_amount <= 0:
+                st.error("🚨 Invalid Amount! Please enter a positive number without special characters.")
+            elif sender == receiver:
+                st.error("🚨 Sender and Receiver cannot be the same person.")
+            else:
+                # --- NEW STRICT BALANCE CHECK FOR TRANSFERS ---
             if sender == receiver:
                 st.error("🚨 Sender and Receiver cannot be the same person.")
             elif fund_amount > 0:
@@ -391,7 +398,8 @@ if tab_expense is not None:
             st.markdown(f"**Spent By:** {active_user}")
             exp_category = st.selectbox("Category", EXPENSE_CATEGORIES, key="exp_category")
         with col5:
-            exp_amount = st.number_input("Expense Amount (₹)", min_value=0, step=100, key="exp_amount")
+            # Changed min_value to 1 to block negative numbers and zero
+            exp_amount = st.number_input("Expense Amount (₹)", min_value=1, step=100, key="exp_amount")
             exp_desc = st.text_input("Description", key="exp_desc")
         with col6:
             st.write("")
@@ -399,7 +407,10 @@ if tab_expense is not None:
             st.write("")
             
             if st.button("Log Expense", type="primary"):
-                if exp_amount > 0:
+                if exp_amount <= 0:
+                    st.error("🚨 Invalid Amount! Please enter a positive number without special characters.")
+                else:
+                    # --- NEW STRICT BALANCE CHECK FOR EXPENSES ---
                     
                     # --- NEW STRICT BALANCE CHECK FOR EXPENSES ---
                     current_balance = balances.get(exp_spender, 0)
