@@ -8,14 +8,16 @@ from supabase import create_client, Client
 # --- 1. CONFIGURATION & SECRETS ---
 st.set_page_config(page_title="Kourav Family Ledger", page_icon="🏦", layout="wide")
 
-# --- 🔒 AUTHENTICATION SYSTEM ---
-# You can change this password and hint to anything you want!
-FAMILY_PASSWORD = "Surekha" 
-PASSWORD_HINT = "Mother's Name"
+FAMILY_PASSWORD = "BIMTECH2027" 
+PASSWORD_HINT = "Vivek's college name (All Caps) followed by his PGDM graduation year."
 
+# Initialize the step-by-step memory
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
+if "active_user" not in st.session_state:
+    st.session_state["active_user"] = None
 
+# --- STEP 1: PASSWORD LOCK SCREEN ---
 if not st.session_state["authenticated"]:
     st.title("🔒 Kourav Family Ledger")
     st.markdown("Please enter the secure family password to access the financial records.")
@@ -32,8 +34,21 @@ if not st.session_state["authenticated"]:
     with st.expander("Forgot Password?"):
         st.info(f"💡 Hint: {PASSWORD_HINT}")
         
-    # The st.stop() command freezes the app here so the database below cannot load!
-    st.stop()
+    st.stop() # Stops the app from loading the next step
+
+# --- STEP 2: PROFILE SELECTION SCREEN ---
+if st.session_state["active_user"] is None:
+    st.title("👋 Welcome to the Kourav Family Ledger!")
+    st.subheader("Who is using the app today?")
+    
+    st.markdown("Select your profile to continue to your dashboard.")
+    selected_profile = st.selectbox("Choose Profile:", ["Father", "Vivek", "Riddhi", "Siddhi"])
+    
+    if st.button("Enter Ledger ➡️", type="primary"):
+        st.session_state["active_user"] = selected_profile
+        st.rerun()
+        
+    st.stop() # Stops the app from loading the main ledger until a user is chosen
 
 # --- 2. FETCH CREDENTIALS ---
 # Fetch credentials securely from Streamlit Secrets
@@ -253,11 +268,17 @@ def process_telegram_inbox():
     except Exception as e:
         st.sidebar.error(f"Sync error: {e}")
 
-# --- 4. USER LOGIN SIMULATION ---
-st.sidebar.header("🔐 Active User Session")
-st.sidebar.markdown("Select your profile before making entries or edits.")
-active_user = st.sidebar.selectbox("Who is using the app?", ALL_MEMBERS)
-st.sidebar.success(f"Currently logged in as: **{active_user}**")
+# --- 4. ACTIVE USER SESSION & SIDEBAR ---
+# Fetch the user chosen in Step 2
+active_user = st.session_state["active_user"]
+
+st.sidebar.header("👤 Active Profile")
+st.sidebar.success(f"Logged in as: **{active_user}**")
+
+# Allow the user to log out or switch profiles
+if st.sidebar.button("🔄 Switch User"):
+    st.session_state["active_user"] = None
+    st.rerun()
 
 st.sidebar.divider()
 st.sidebar.header("🤖 Telegram Bot Sync")
