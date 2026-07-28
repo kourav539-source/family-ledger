@@ -150,10 +150,18 @@ def process_telegram_inbox():
                 continue
 
             if "message" in update and "text" in update["message"]:
-                text = update["message"]["text"].lower().strip()
+                raw_text = update["message"]["text"].lower().strip()
+                
+                # --- TEXT CLEANER: HANDLE HUMAN ERRORS & TYPOS ---
+                # 1. Remove duplicate consecutive words (e.g., changes "on on" to "on", "to to to" to "to")
+                text = re.sub(r'\b(\w+)(?:\s+\1\b)+', r'\1', raw_text)
+                # 2. Remove punctuation that might break the text reading
+                text = re.sub(r'[^\w\s]', '', text)
+                # 3. Collapse multiple spaces into a single space
+                text = re.sub(r'\s+', ' ', text)
                 
                 # --- PATTERN 1: Father giving funds ---
-                match_father = re.search(r'father\s+(?:give|send|gave|sent)\s+(\d+)\s*(?:usdt|rs|rupees)?\s+(?:to|ro)\s+(vivek|riddhi|siddhi)', text)
+                match_father = re.search(r'father\s+(?:give|send|gave|sent|paid|transfer)\s+(\d+)\s*(?:usdt|rs|rupees|inr)?\s+(?:to|ro)?\s+(vivek|riddhi|siddhi)', text)
                 if match_father:
                     amount = int(match_father.group(1))
                     receiver = match_father.group(2).capitalize()
@@ -164,7 +172,7 @@ def process_telegram_inbox():
                     continue
 
                 # --- PATTERN 2: Sibling Transfer ---
-                match_transfer = re.search(r'(?:(vivek|riddhi|siddhi)\s+)?(?:send|sent|transferred|give|gave)\s+(\d+)\s*(?:usdt|rs|rupees)?\s+(?:to|ro)\s+(vivek|riddhi|siddhi)', text)
+                match_transfer = re.search(r'(?:(vivek|riddhi|siddhi)\s+)?(?:send|sent|transferred|give|gave|paid|pay)\s+(\d+)\s*(?:usdt|rs|rupees|inr)?\s+(?:to|ro)?\s+(vivek|riddhi|siddhi)', text)
                 if match_transfer:
                     explicit_sender = match_transfer.group(1)
                     amount = int(match_transfer.group(2))
@@ -194,8 +202,9 @@ def process_telegram_inbox():
                         newly_processed_ids.append(update_id)
                         continue
 
-                # --- PATTERN 3: Sibling Expense ---
-                match_expense = re.search(r'(?:(vivek|riddhi|siddhi)\s+)?(?:i\s+)?spent\s+(\d+)\s*(?:usdt|rs|rupees)?\s+(?:on\s+)?(.+)?', text)
+                # --- PATTERN 3: Sibling Expense (Highly Flexible) ---
+                # Checks for spent/spend/paid/pay/used and ignores extra words before the item
+                match_expense = re.search(r'(?:(vivek|riddhi|siddhi)\s+)?(?:i\s+)?(?:spent|spend|paid|pay|used)\s+(\d+)\s*(?:usdt|rs|rupees|inr)?\s+(?:on|for)?\s*(.+)?', text)
                 if match_expense:
                     explicit_spender = match_expense.group(1)
                     amount = int(match_expense.group(2))
@@ -217,14 +226,16 @@ def process_telegram_inbox():
                         category = "Other"
                         if raw_category:
                             raw_lower = raw_category.strip().lower()
+                            # Added 'petrol', 'fuel', 'cab', 'auto' to the Transport category mapping
                             if "rent" in raw_lower or "hostel" in raw_lower: category = "Hostel / Rent"
                             elif "grocer" in raw_lower or "food" in raw_lower: category = "Groceries / Food"
                             elif "college" in raw_lower or "fee" in raw_lower or "pgdm" in raw_lower: category = "PGDM / College Fees"
-                            elif "transport" in raw_lower or "travel" in raw_lower: category = "Transport"
+                            elif "transport" in raw_lower or "travel" in raw_lower or "petrol" in raw_lower or "fuel" in raw_lower or "cab" in raw_lower: category = "Transport"
                             elif "shop" in raw_lower: category = "Shopping"
-                            elif "medic" in raw_lower: category = "Medical"
+                            elif "medic" in raw_lower or "doctor" in raw_lower: category = "Medical"
                             else: category = "Other"
 
+                        # Save the full conversational text in the description so you know what they typed
                         save_transaction(today_str, "Expense", spender, category, amount, f"Chat: {raw_category}", spender)
                         send_telegram_alert(f"🤖 *Bot Auto-Processed!*\n{spender} logged an expense of ₹{amount:,} for {category}.")
                         newly_processed_ids.append(update_id)
