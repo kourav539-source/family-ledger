@@ -458,11 +458,45 @@ with tab_edit:
         else:
             st.info("No changes detected.")
 
-# --- 9. MONTHLY TRANSACTION HISTORY ---
+# --- 9. INDIVIDUAL MONTHLY LEDGERS ---
 st.divider()
-st.subheader(f"Ledger for {selected_month}")
+st.subheader(f"Ledgers for {selected_month}")
+
 if not df.empty and not monthly_df.empty:
-    display_df = monthly_df.drop(columns=["Month_Year", "id"]).sort_values(by="Date", ascending=False)
-    st.dataframe(display_df, use_container_width=True, hide_index=True)
+    # Create separate tabs for Father, Vivek, Riddhi, and Siddhi
+    ledger_tabs = st.tabs(ALL_MEMBERS)
+    
+    for i, member_name in enumerate(ALL_MEMBERS):
+        with ledger_tabs[i]:
+            
+            # Filter the dataframe so each person only sees their own data
+            if member_name == "Father":
+                # Father's table: Only shows funds he sent out
+                member_df = monthly_df[monthly_df["Category"] == "From Father"].copy()
+            else:
+                # Sibling tables: Shows their expenses, received funds, and transfers
+                member_df = monthly_df[monthly_df["Member"] == member_name].copy()
+            
+            if not member_df.empty:
+                # Add clear symbols to the "Type" column to denote transfers vs expenses
+                member_df["Type"] = member_df["Type"].replace({
+                    "Fund Allocation": "➡️ Fund Transfer",
+                    "Transfer In": "📥 Transfer In",
+                    "Transfer Out": "📤 Transfer Out",
+                    "Expense": "📉 Expense"
+                })
+                
+                # Clean up the table for display
+                display_df = member_df.drop(columns=["Month_Year", "id"]).sort_values(by="Date", ascending=False)
+                
+                # Make the Father's table slightly easier to read by renaming 'Member' to 'Sent To'
+                if member_name == "Father" and "Category" in display_df.columns:
+                     display_df = display_df.drop(columns=["Category"])
+                     display_df = display_df.rename(columns={"Member": "Sent To"})
+                
+                # Display the individual table
+                st.dataframe(display_df, use_container_width=True, hide_index=True)
+            else:
+                st.info(f"No transactions found for {member_name} in {selected_month}.")
 else:
     st.info(f"No transactions found for {selected_month}.")
