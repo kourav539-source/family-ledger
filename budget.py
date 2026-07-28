@@ -8,11 +8,40 @@ from supabase import create_client, Client
 # --- 1. CONFIGURATION & SECRETS ---
 st.set_page_config(page_title="Automated Family Ledger", page_icon="🏦", layout="wide")
 
+# --- 🔒 AUTHENTICATION SYSTEM ---
+# You can change this password and hint to anything you want!
+FAMILY_PASSWORD = "BIMTECH2027" 
+PASSWORD_HINT = "Vivek's college name (All Caps) followed by his PGDM graduation year."
+
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+
+if not st.session_state["authenticated"]:
+    st.title("🔒 Private Family Ledger")
+    st.markdown("Please enter the secure family password to access the financial records.")
+    
+    pwd = st.text_input("Password", type="password")
+    
+    if st.button("Unlock Ledger", type="primary"):
+        if pwd == FAMILY_PASSWORD:
+            st.session_state["authenticated"] = True
+            st.rerun()
+        else:
+            st.error("❌ Incorrect Password. Please try again.")
+            
+    with st.expander("Forgot Password?"):
+        st.info(f"💡 Hint: {PASSWORD_HINT}")
+        
+    # The st.stop() command freezes the app here so the database below cannot load!
+    st.stop()
+
+# --- 2. FETCH CREDENTIALS ---
 # Fetch credentials securely from Streamlit Secrets
 TELEGRAM_BOT_TOKEN = st.secrets["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHAT_ID = st.secrets["TELEGRAM_CHAT_ID"]
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
 SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+
 
 @st.cache_resource
 def init_connection():
