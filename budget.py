@@ -270,13 +270,24 @@ if not df.empty:
     def show_monthly_metrics(col, name):
         if not monthly_df.empty:
             m_data = monthly_df[monthly_df["Member"] == name]
-            m_in = m_data[m_data["Type"].isin(["Fund Allocation", "Transfer In"])]["Amount (₹)"].sum()
-            m_out = m_data[m_data["Type"].isin(["Expense", "Transfer Out"])]["Amount (₹)"].sum()
+            
+            # 1. Strictly from Father
+            m_from_father = m_data[m_data["Type"] == "Fund Allocation"]["Amount (₹)"].sum()
+            
+            # 2. Transfers (In and Out)
+            m_transfer_in = m_data[m_data["Type"] == "Transfer In"]["Amount (₹)"].sum()
+            m_transfer_out = m_data[m_data["Type"] == "Transfer Out"]["Amount (₹)"].sum()
+            
+            # 3. Strictly Logged Expenses
+            m_expense = m_data[m_data["Type"] == "Expense"]["Amount (₹)"].sum()
         else:
-            m_in, m_out = 0, 0
+            m_from_father, m_transfer_in, m_transfer_out, m_expense = 0, 0, 0, 0
+            
         col.markdown(f"**{name}**")
-        col.write(f"🟢 Received: ₹{m_in:,.0f}")
-        col.write(f"🔴 Spent: ₹{m_out:,.0f}")
+        col.write(f"👔 From Father: ₹{m_from_father:,.0f}")
+        col.write(f"📥 Transfer In: ₹{m_transfer_in:,.0f}")
+        col.write(f"📤 Transfer Out: ₹{m_transfer_out:,.0f}")
+        col.write(f"📉 Expenses: ₹{m_expense:,.0f}")
         
     show_monthly_metrics(mc1, "Vivek")
     show_monthly_metrics(mc2, "Riddhi")
