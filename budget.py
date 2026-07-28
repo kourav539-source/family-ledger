@@ -10,8 +10,8 @@ st.set_page_config(page_title="Automated Family Ledger", page_icon="🏦", layou
 
 # --- 🔒 AUTHENTICATION SYSTEM ---
 # You can change this password and hint to anything you want!
-FAMILY_PASSWORD = "BIMTECH2027" 
-PASSWORD_HINT = "Vivek's college name (All Caps) followed by his PGDM graduation year."
+FAMILY_PASSWORD = "Surekha" 
+PASSWORD_HINT = "Mother's Name"
 
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
